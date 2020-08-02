@@ -10,5 +10,5 @@ func Hash(s string) string {
 	h.Write([]byte(s))
 	sum := h.Sum(nil)
 	encoded := base64.RawURLEncoding.EncodeToString([]byte(sum))
-	return encoded[:10]
+	return encoded[:8]
 }

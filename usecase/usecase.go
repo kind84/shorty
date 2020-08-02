@@ -24,8 +24,8 @@ func (a *App) CutURL(ctx context.Context, url string) (string, error) {
 	// run hash func
 	hash := hash.Hash(url)
 
-	//store k/v to repo
-	err := a.db.Save(ctx, hash)
+	// store k/v to repo
+	err := a.db.Save(ctx, url, hash)
 	if err != nil {
 		return "", err
 	}
@@ -33,6 +33,10 @@ func (a *App) CutURL(ctx context.Context, url string) (string, error) {
 	return hash, nil
 }
 
-func (a *App) BurnURL(context.Context, string) error
+func (a *App) BurnURL(context.Context, string) error {
+	return nil
+}
 
-func (a *App) InflateURL(context.Context, string) (string, error)
+func (a *App) InflateURL(context.Context, string) (string, error) {
+	return "", nil
+}
