@@ -12,13 +12,16 @@ import (
 // global vars containing SHA1 digests of Lua scipts once they have been loaded
 // into redis.
 var (
-	saveAndCountLua = ""
+	saveLua               = ""
+	deleteShortAndLongLua = ""
 )
 
+// RedisDB is the DB implementation using Redis.
 type RedisDB struct {
 	rdb *redis.Client
 }
 
+// NewRedisDB returns an instance of the RedisDB ready to use.
 func NewRedisDB(addr string) (*RedisDB, error) {
 	rs := &RedisDB{
 		rdb: redis.NewClient(&redis.Options{
@@ -31,33 +34,69 @@ func NewRedisDB(addr string) (*RedisDB, error) {
 		return nil, err
 	}
 
-	// err = rs.loadScripts()
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = rs.loadScripts()
+	if err != nil {
+		return nil, err
+	}
 
 	return rs, nil
 }
 
+// Save a URL and its shortened version.
 func (db *RedisDB) Save(ctx context.Context, url, hash string) error {
-	return nil
+	// run pre-loaded script
+	_, err := db.rdb.WithContext(ctx).EvalSha(
+		saveLua,
+		[]string{url, hash}, // KEYS
+		[]string{hash, url}, // ARGV
+	).Result()
+	return err
 }
 
-func (db *RedisDB) Find(ctx context.Context, hash string) (string, error) {
-	return "", nil
+// Find returns the value matching the given key.
+func (db *RedisDB) Find(ctx context.Context, key string) (string, error) {
+	return db.rdb.WithContext(ctx).Get(key).Result()
 }
 
-func (db *RedisDB) Delete(context.Context, string) error {
-	return nil
+// Delete removes both the URL and its shortened version.
+func (db *RedisDB) Delete(ctx context.Context, key string) error {
+	// run pre-loaded script
+	_, err := db.rdb.WithContext(ctx).EvalSha(
+		saveLua,
+		[]string{key}, // KEYS
+		[]string{},    // ARGV
+	).Result()
+	return err
+}
+
+// Count return the redirections count value for the given URL.
+func (db *RedisDB) Count(ctx context.Context, url string) (int, error) {
+	return db.rdb.WithContext(ctx).Get(fmt.Sprintf("count:%s", url)).Int()
+}
+
+// Incr increments the redirections count value for the given URL.
+func (db *RedisDB) Incr(ctx context.Context, url string) error {
+	_, err := db.rdb.WithContext(ctx).Incr(fmt.Sprintf("count:%s", url)).Result()
+	return err
 }
 
 func (r *RedisDB) loadScripts() error {
-	saveAndCountStr, err := readLuaScript("saveAndCount.lua")
+	saveStr, err := readLuaScript("save.lua")
 	if err != nil {
 		return err
 	}
 
-	saveAndCountLua, err = r.rdb.ScriptLoad(saveAndCountStr).Result()
+	saveLua, err = r.rdb.ScriptLoad(saveStr).Result()
+	if err != nil {
+		return err
+	}
+
+	deleteShortAndLongStr, err := readLuaScript("deleteShortAndLong.lua")
+	if err != nil {
+		return err
+	}
+
+	deleteShortAndLongLua, err = r.rdb.ScriptLoad(deleteShortAndLongStr).Result()
 	if err != nil {
 		return err
 	}

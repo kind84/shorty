@@ -16,7 +16,15 @@ func NewApp(db DB) *App {
 
 // MatchHash returns the URL matching the provided hash.
 func (a *App) MatchHash(ctx context.Context, hash string) (string, error) {
-	return a.db.Find(ctx, hash)
+	// retrieve hashed URL
+	url, err := a.db.Find(ctx, hash)
+	if err != nil {
+		return "", err
+	}
+
+	// increment redirections counter
+	// a.db.Incr(ctx, url)
+	return url, nil
 }
 
 // CutURL stores the url/hash pair and returns the hasing result.
@@ -33,10 +41,12 @@ func (a *App) CutURL(ctx context.Context, url string) (string, error) {
 	return hash, nil
 }
 
-func (a *App) BurnURL(context.Context, string) error {
-	return nil
+// BurnURL deletes the provided long/short URL.
+func (a *App) BurnURL(ctx context.Context, key string) error {
+	return a.db.Delete(ctx, key)
 }
 
-func (a *App) InflateURL(context.Context, string) (string, error) {
-	return "", nil
+// InflateURL returns the extenfed version of the provided short URL.
+func (a *App) InflateURL(ctx context.Context, short string) (string, error) {
+	return a.db.Find(ctx, short)
 }

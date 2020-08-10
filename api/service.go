@@ -19,6 +19,7 @@ func NewService(app App) *Service {
 	return &Service{app}
 }
 
+// Bounce performs the redirect from a shortened URL to its extended version.
 func (s *Service) Bounce(c *gin.Context) {
 	url, err := s.app.MatchHash(c.Request.Context(), c.Params.ByName("hash"))
 	if err != nil {
@@ -35,6 +36,7 @@ type CutResponse struct {
 	ShortURL string `json:"shortUrl"`
 }
 
+// Cut returns the shortened version of the provided URL.
 func (s *Service) Cut(c *gin.Context) {
 	var cr CutRequest
 	err := json.NewDecoder(c.Request.Body).Decode(&cr)
@@ -66,6 +68,7 @@ type BurnRequest struct {
 	URL string `json:"url"`
 }
 
+// Burn removes the URL and its shortened version.
 func (s *Service) Burn(c *gin.Context) {
 	var br BurnRequest
 	err := json.NewDecoder(c.Request.Body).Decode(&br)
@@ -87,6 +90,7 @@ type InflateResponse struct {
 	URL string `json:"url"`
 }
 
+// Inflate returns the extended version of the provided short URL.
 func (s *Service) Inflate(c *gin.Context) {
 	var ir InflateRequest
 	err := json.NewDecoder(c.Request.Body).Decode(&ir)
