@@ -7,4 +7,5 @@ type App interface {
 	CutURL(context.Context, string) (string, error)
 	BurnURL(context.Context, string) error
 	InflateURL(context.Context, string) (string, error)
+	CountHits(context.Context, string) (int, error)
 }

@@ -39,13 +39,12 @@ type CutResponse struct {
 // Cut returns the shortened version of the provided URL.
 func (s *Service) Cut(c *gin.Context) {
 	var cr CutRequest
-	err := json.NewDecoder(c.Request.Body).Decode(&cr)
-	if err != nil {
+	if err := json.NewDecoder(c.Request.Body).Decode(&cr); err != nil {
 		c.Error(err)
 	}
 
 	// check if valid url
-	_, err = url.ParseRequestURI(cr.URL)
+	_, err := url.ParseRequestURI(cr.URL)
 	if err != nil {
 		c.Error(err)
 	}
@@ -58,8 +57,7 @@ func (s *Service) Cut(c *gin.Context) {
 	// stick domain to hash and return it
 	short := fmt.Sprintf("%s/%s", domain, hash)
 
-	err = json.NewEncoder(c.Copy().Writer).Encode(CutResponse{short})
-	if err != nil {
+	if err = json.NewEncoder(c.Copy().Writer).Encode(CutResponse{short}); err != nil {
 		c.Error(err)
 	}
 }
@@ -71,13 +69,11 @@ type BurnRequest struct {
 // Burn removes the URL and its shortened version.
 func (s *Service) Burn(c *gin.Context) {
 	var br BurnRequest
-	err := json.NewDecoder(c.Request.Body).Decode(&br)
-	if err != nil {
+	if err := json.NewDecoder(c.Request.Body).Decode(&br); err != nil {
 		c.Error(err)
 	}
 
-	err = s.app.BurnURL(c.Request.Context(), br.URL)
-	if err != nil {
+	if err := s.app.BurnURL(c.Request.Context(), br.URL); err != nil {
 		c.Error(err)
 	}
 }
@@ -93,8 +89,7 @@ type InflateResponse struct {
 // Inflate returns the extended version of the provided short URL.
 func (s *Service) Inflate(c *gin.Context) {
 	var ir InflateRequest
-	err := json.NewDecoder(c.Request.Body).Decode(&ir)
-	if err != nil {
+	if err := json.NewDecoder(c.Request.Body).Decode(&ir); err != nil {
 		c.Error(err)
 	}
 
@@ -103,8 +98,31 @@ func (s *Service) Inflate(c *gin.Context) {
 		c.Error(err)
 	}
 
-	err = json.NewEncoder(c.Copy().Writer).Encode(CutResponse{url})
+	if err = json.NewEncoder(c.Copy().Writer).Encode(CutResponse{url}); err != nil {
+		c.Error(err)
+	}
+}
+
+type CountRequest struct {
+	URL string `json:"url"`
+}
+
+type CountResponse struct {
+	Hits int `json:"hits"`
+}
+
+func (s *Service) Count(c *gin.Context) {
+	var cr CountRequest
+	if err := json.NewDecoder(c.Request.Body).Decode(&cr); err != nil {
+		c.Error(err)
+	}
+
+	n, err := s.app.CountHits(c.Request.Context(), cr.URL)
 	if err != nil {
+		c.Error(err)
+	}
+
+	if err := json.NewEncoder(c.Copy().Writer).Encode(CountResponse{n}); err != nil {
 		c.Error(err)
 	}
 }

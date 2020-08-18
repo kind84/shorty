@@ -13,6 +13,7 @@ import (
 // into redis.
 var (
 	saveLua               = ""
+	getAndIncrLua         = ""
 	deleteShortAndLongLua = ""
 )
 
@@ -58,6 +59,17 @@ func (db *RedisDB) Find(ctx context.Context, key string) (string, error) {
 	return db.rdb.WithContext(ctx).Get(key).Result()
 }
 
+// FindAndIncr returns the value matching the given key and increments the
+// counter.
+func (db *RedisDB) FindAndIncr(ctx context.Context, key string) (string, error) {
+	// run pre-loaded script
+	hash, err := db.rdb.WithContext(ctx).EvalSha(
+		getAndIncrLua,
+		[]string{key}, // KEYS
+	).Result()
+	return hash.(string), err
+}
+
 // Delete removes both the URL and its shortened version.
 func (db *RedisDB) Delete(ctx context.Context, key string) error {
 	// run pre-loaded script
@@ -87,6 +99,16 @@ func (r *RedisDB) loadScripts() error {
 	}
 
 	saveLua, err = r.rdb.ScriptLoad(saveStr).Result()
+	if err != nil {
+		return err
+	}
+
+	getAndIncrStr, err := readLuaScript("getAndIncr.lua")
+	if err != nil {
+		return err
+	}
+
+	getAndIncrLua, err = r.rdb.ScriptLoad(getAndIncrStr).Result()
 	if err != nil {
 		return err
 	}
