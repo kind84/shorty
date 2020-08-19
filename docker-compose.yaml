@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  shorty:
+    build: .
+    depends_on:
+      - redis
+    ports:
+      - "8080:80"
+    environment:
+      PORT: 80
+      REDIS_HOST: redis:6379
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - type: volume
+        source: redis
+        target: /data
+        volume:
+          nocopy: true
+    command: ["redis-server", "--appendonly", "yes", "--aof-use-rdb-preamble", "yes"]
+
+volumes:
+  redis:

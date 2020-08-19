@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os"
+	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
 
@@ -11,10 +14,21 @@ import (
 )
 
 func main() {
-	db, err := db.NewRedisDB("redis")
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("panic trapped in main goroutine : %+v", err)
+			log.Printf("stacktrace from panic: %s", string(debug.Stack()))
+			os.Exit(1)
+		}
+	}()
+
+	ctx := context.Background()
+
+	db, err := db.NewRedisDB(ctx, "redis:6379")
 	if err != nil {
 		log.Fatalf("error initializing database: %s", err)
 	}
+
 	app := usecase.NewApp(db)
 	service := api.NewService(app)
 

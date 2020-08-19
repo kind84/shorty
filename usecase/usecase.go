@@ -38,8 +38,7 @@ func (a *App) CutURL(ctx context.Context, url string) (string, error) {
 	hash := hash.Hash(url)
 
 	// store k/v to repo
-	err := a.db.Save(ctx, url, hash)
-	if err != nil {
+	if err := a.db.Save(ctx, url, hash); err != nil {
 		return "", err
 	}
 
@@ -58,5 +57,5 @@ func (a *App) InflateURL(ctx context.Context, short string) (string, error) {
 
 // CountHits returns the number of times the given URL has been hit.
 func (a *App) CountHits(ctx context.Context, url string) (int, error) {
-	return 0, nil
+	return a.db.Count(ctx, url)
 }
