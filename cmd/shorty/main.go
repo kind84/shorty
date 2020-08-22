@@ -37,6 +37,7 @@ func main() {
 	r.POST("/api/cut", service.Cut)
 	r.POST("/api/destroy", service.Burn)
 	r.POST("/api/inflate", service.Inflate)
+	r.POST("/api/count", service.Count)
 
 	r.Run()
 }

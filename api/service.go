@@ -57,9 +57,7 @@ func (s *Service) Cut(c *gin.Context) {
 	// stick domain to hash and return it
 	short := fmt.Sprintf("%s/%s", domain, hash)
 
-	if err = json.NewEncoder(c.Copy().Writer).Encode(CutResponse{short}); err != nil {
-		c.Error(err)
-	}
+	c.JSON(200, CutResponse{short})
 }
 
 type BurnRequest struct {
@@ -75,6 +73,8 @@ func (s *Service) Burn(c *gin.Context) {
 
 	if err := s.app.BurnURL(c.Request.Context(), br.URL); err != nil {
 		c.Error(err)
+	} else {
+		c.String(200, "OK")
 	}
 }
 
@@ -98,9 +98,7 @@ func (s *Service) Inflate(c *gin.Context) {
 		c.Error(err)
 	}
 
-	if err = json.NewEncoder(c.Copy().Writer).Encode(CutResponse{url}); err != nil {
-		c.Error(err)
-	}
+	c.JSON(200, InflateResponse{url})
 }
 
 type CountRequest struct {
@@ -111,6 +109,7 @@ type CountResponse struct {
 	Hits int `json:"hits"`
 }
 
+// Count returns the number of times a given short url has been served.
 func (s *Service) Count(c *gin.Context) {
 	var cr CountRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&cr); err != nil {
@@ -122,7 +121,5 @@ func (s *Service) Count(c *gin.Context) {
 		c.Error(err)
 	}
 
-	if err := json.NewEncoder(c.Copy().Writer).Encode(CountResponse{n}); err != nil {
-		c.Error(err)
-	}
+	c.JSON(200, CountResponse{n})
 }

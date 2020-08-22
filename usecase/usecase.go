@@ -27,8 +27,6 @@ func (a *App) MatchHash(ctx context.Context, hash string) (string, error) {
 		return "", errors.New("URL not found")
 	}
 
-	// increment redirections counter
-	a.db.Incr(ctx, hash)
 	return url, nil
 }
 

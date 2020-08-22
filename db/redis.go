@@ -77,9 +77,8 @@ func (db *RedisDB) Delete(ctx context.Context, key string) error {
 	// run pre-loaded script
 	_, err := db.rdb.EvalSha(
 		ctx,
-		saveLua,
+		deleteShortAndLongLua,
 		[]string{key}, // KEYS
-		[]string{},    // ARGV
 	).Result()
 	return err
 }
